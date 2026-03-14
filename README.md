@@ -18,29 +18,51 @@ Feature of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)
 
 ### Build
 
+#### Prerequisites
+
+- **JDK 21** (Temurin recommended)
+- **Android SDK** with platform API 35, build-tools 35.0.0
+- **Android NDK** 29.0.14206865
+- **CMake** 3.22.1 (installed via Android SDK Manager)
+- **Go** 1.26+
+
+#### Steps
+
 1. Update submodules
 
    ```bash
    git submodule update --init --recursive
    ```
 
-2. Install **OpenJDK 11**, **Android SDK**, **CMake** and **Golang**
+2. Apply Go patches (required for Android compatibility)
 
-3. Create `local.properties` in project root with
+   ```bash
+   cd $(go env GOROOT)
+   for p in /path/to/project/.github/patch/*.patch; do patch --verbose -p 1 < "$p"; done
+   ```
+
+3. Update CA certificates in the clash core
+
+   ```bash
+   cp -f /etc/ssl/certs/ca-certificates.crt core/src/foss/golang/clash/component/ca/ca-certificates.crt
+   ```
+
+4. Create `local.properties` in project root with
 
    ```properties
    sdk.dir=/path/to/android-sdk
    ```
 
-4. (Optional) Custom app package name. Add the following configuration to `local.properties`.
+5. (Optional) Custom app package name. Add the following configuration to `local.properties`.
 
    ```properties
-   # config your ownn applicationId, or it will be 'com.github.metacubex.clash'
+   # config your own applicationId, or it will be 'com.github.metacubex.clash'
    custom.application.id=com.my.compile.clash
-   # remove application id suffix, or the applicaion id will be 'com.github.metacubex.clash.alpha'
+   # remove application id suffix, or the application id will be 'com.github.metacubex.clash.alpha'
    remove.suffix=true
+   ```
 
-5. Create `signing.properties` in project root with
+6. (Optional) Create `signing.properties` in project root for release signing
 
    ```properties
    keystore.path=/path/to/keystore/file
@@ -49,11 +71,13 @@ Feature of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)
    key.password=<key password>
    ```
 
-6. Build
+7. Build
 
    ```bash
    ./gradlew app:assembleAlphaRelease
    ```
+
+   APKs will be generated in `app/build/outputs/apk/alpha/release/` for each architecture (arm64-v8a, armeabi-v7a, x86, x86_64, universal).
 
 ### Automation
 
